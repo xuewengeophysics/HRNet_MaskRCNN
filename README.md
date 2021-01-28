@@ -1,6 +1,6 @@
 # Unified model HRNet_MaskRCNN that can simultaneously predict boxes, segments, and keypoints
 
-`original code` clone from https://github.com/HRNet/HRNet-MaskRCNN-Benchmark
+`original code` clone from [HRNet-MaskRCNN-Benchmark](https://github.com/HRNet/HRNet-MaskRCNN-Benchmark), which is based on [maskrcnn-benchmark](https://github.com/facebookresearch/maskrcnn-benchmark).
 
 
 
