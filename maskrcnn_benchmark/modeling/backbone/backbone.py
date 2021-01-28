@@ -18,7 +18,7 @@ def build_msnet_backbone(cfg):
     return model
 
 
-@registry.BACKBONES.register('HRNET-HR')
+@registry.BACKBONES.register('HRNET-HR')  ##我觉得应该叫HRNET-FPN
 def build_hrnet_hr_backbone(cfg):
     body = hrnet.HRNet(cfg)
     neck = hrfpn.HRFPN(cfg)
