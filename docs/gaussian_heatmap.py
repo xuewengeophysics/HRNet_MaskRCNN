@@ -3,6 +3,7 @@
 @author: Ferry Liu
 @data: 2020
 """
+import torch
 import cv2
 import numpy as np
 from pycocotools.coco import COCO
@@ -16,6 +17,47 @@ HEIGHT = 224
 cmap = plt.get_cmap('rainbow')
 colors = [cmap(i) for i in np.linspace(0, 1, 17)]
 COLORS = [(c[2] * 255, c[1] * 255, c[0] * 255) for c in colors]
+
+
+def keypointrcnn_inference(pred_heamtmap, boxes):
+    # type: (Tensor, List[Tensor]) -> Tuple[List[Tensor], List[Tensor]]
+    kp_probs = []
+    kp_scores = []
+
+    boxes_per_image = [box.size(0) for box in boxes]
+    heatmaps = pred_heamtmap.split(boxes_per_image, dim=0)
+
+    for heatmap, bbox in zip(heatmaps, boxes):
+        kp_prob, scores = heatmaps2kps(heatmap, bbox)
+        kp_probs.append(kp_prob)
+        kp_scores.append(scores)
+
+    return kp_probs, kp_scores
+
+
+def heatmaps2kps(heatmaps, bboxes):
+    xy_preds = torch.zeros((len(heatmaps), num_joints, 3), dtype=torch.float32, device=heatmaps.device)
+    end_scores = torch.zeros((len(heatmaps), num_joints), dtype=torch.float32, device=heatmaps.device)
+    heatmaps = heatmaps.cpu().detach().numpy()
+    bboxes = bboxes.cpu().detach().numpy()
+    for k, (heatmap, bbox) in enumerate(zip(heatmaps, bboxes)):
+        x1, y1, h, w = bbox
+        enlarge_ratio_h, enlarge_ratio_w = heatmap_height/h, heatmap_width/w
+        enlarge_ratio = [enlarge_ratio_w, enlarge_ratio_h]
+        for j, hm_j in enumerate(heatmap):
+            hm_j = heatmap[j, :, :]
+            idx = hm_j.argmax()
+            y, x = np.unravel_index(idx, hm_j.shape)
+            score = hm_j[y][x]  # 注意坐标顺序
+            #  if score < 0.5: continue
+            x = x/cfg['heatmap_size'][0]*cfg['image_size'][0]
+            y = y/cfg['heatmap_size'][1]*cfg['image_size'][1]
+            x, y = x/enlarge_ratio[0] + x1, y/enlarge_ratio[1] + y1
+            xy_preds[k][j][0] = x
+            xy_preds[k][j][1] = y
+            xy_preds[k][j][2] = float(score)
+            end_scores[k][j] = float(score)
+    return xy_preds, end_scores
 
 
 def _generate_target(cfg, joints_3d, joints_3d_visible, sigma=3):
