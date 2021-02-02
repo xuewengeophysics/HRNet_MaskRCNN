@@ -8,10 +8,10 @@ import numpy as np
 from pycocotools.coco import COCO
 import matplotlib.pyplot as plt
 import ipdb;pdb=ipdb.set_trace
-heatmap_w = 224
-heatmap_h = 224
-WIDTH = 64
-HEIGHT = 64
+heatmap_w = 64
+heatmap_h = 64
+WIDTH = 224
+HEIGHT = 224
 
 cmap = plt.get_cmap('rainbow')
 colors = [cmap(i) for i in np.linspace(0, 1, 17)]
@@ -193,7 +193,7 @@ if __name__ == "__main__":
         nonzero_x = joints_3d[..., 0].nonzero()[0]  ##array，x坐标不为0的关键点的index组成的array
         nonzero_y = joints_3d[..., 1].nonzero()[0]  ##array，y坐标不为0的关键点的index组成的array
         joints_3d[..., 0][nonzero_x] = (joints_3d[..., 0][nonzero_x] - x) * enlarge_ratio_w  ##各个关键点在大小为[WIDTH, HEIGHT]的resize图上的位置的x坐标
-        joints_3d[..., 1][nonzero_y] = (joints_3d[..., 1][nonzero_x] - y) * enlarge_ratio_h  ##各个关键点在大小为[WIDTH, HEIGHT]的resize图上的位置的y坐标
+        joints_3d[..., 1][nonzero_y] = (joints_3d[..., 1][nonzero_y] - y) * enlarge_ratio_h  ##各个关键点在大小为[WIDTH, HEIGHT]的resize图上的位置的y坐标
 
         cv2.imwrite("./croped_person{}.png".format(k), croped_person)
         joints_3d_visible = np.zeros((17, 3))
@@ -206,6 +206,7 @@ if __name__ == "__main__":
         cfg = {'image_size': np.array([WIDTH, HEIGHT]), 'num_joints': 17, 'heatmap_size': np.array([heatmap_w, heatmap_h])}
         #  result = generate_guassian_heatmap(cfg, joints_3d, joints_3d_visible)
         targets, targets_visible = _generate_target(cfg, joints_3d, joints_3d_visible) # 包含了17个heatmap
+        ipdb.set_trace()
         heatmap = np.zeros((heatmap_w, heatmap_h))
 
         for i in range(len(targets)):
@@ -214,8 +215,8 @@ if __name__ == "__main__":
         xx = xx * 255
         rgb = cv2.cvtColor(xx, cv2.COLOR_GRAY2RGB)
         # 通过高斯核生成的heatmap + 原始croped resized图片
-        #  rgb_merged = rgb + croped_person
-        #  cv2.imwrite("./heatmaps/heatmap{}.png".format(k), rgb_merged)
+        # rgb_merged = rgb + croped_person
+        # cv2.imwrite("./heatmap{}.png".format(k), rgb_merged)
 
 
         heatmaps = targets
