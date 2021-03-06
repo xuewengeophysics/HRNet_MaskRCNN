@@ -106,3 +106,5 @@ SOLVER:
   STEPS: (60000, 80000)
   MAX_ITER: 90000
 OUTPUT_DIR: "work_dirs/keypoint_rcnn_hrnet_w18_1x"
+TEST:
+  IMS_PER_BATCH: 1
