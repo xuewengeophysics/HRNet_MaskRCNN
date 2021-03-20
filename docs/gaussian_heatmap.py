@@ -351,6 +351,15 @@ def post(coords, batch_heatmaps):
 
 
 def _udp_get_final_preds(cfg, batch_heatmaps):
+    '''
+    Args:
+        cfg:
+        batch_heatmaps: [num_person, num keypoints * 3, heatmap_height, heatmap_width]
+
+    Returns:
+
+    '''
+
     heatmap_height = batch_heatmaps.shape[2]
     heatmap_width = batch_heatmaps.shape[3]
     if cfg['TARGET_TYPE'] == 'GaussianHeatMap':
@@ -361,15 +370,16 @@ def _udp_get_final_preds(cfg, batch_heatmaps):
         net_output = batch_heatmaps.copy()
         kps_pos_distance_x = cfg['factor'] * heatmap_height
         kps_pos_distance_y = cfg['factor'] * heatmap_height
-        batch_heatmaps = net_output[:,::3,:]
-        offset_x = net_output[:,1::3,:] * kps_pos_distance_x
-        offset_y = net_output[:,2::3,:] * kps_pos_distance_y
+        batch_heatmaps = net_output[:,::3,:]  ##对应论文中的C
+        offset_x = net_output[:,1::3,:] * kps_pos_distance_x  ##对应论文中的X
+        offset_y = net_output[:,2::3,:] * kps_pos_distance_y  ##对应论文中的Y
         for i in range(batch_heatmaps.shape[0]):
             for j in range(batch_heatmaps.shape[1]):
                 batch_heatmaps[i,j,:,:] = cv2.GaussianBlur(batch_heatmaps[i,j,:,:],(15, 15), 0)
                 offset_x[i,j,:,:] = cv2.GaussianBlur(offset_x[i,j,:,:],(7, 7), 0)
                 offset_y[i,j,:,:] = cv2.GaussianBlur(offset_y[i,j,:,:],(7, 7), 0)
         coords, maxvals = get_max_preds(batch_heatmaps)
+        #n个目标，p个关键点
         for n in range(coords.shape[0]):
             for p in range(coords.shape[1]):
                 px = int(coords[n][p][0])
